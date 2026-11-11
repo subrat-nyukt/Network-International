@@ -1,0 +1,24 @@
+# Secrets & Environment Variables (NEVER COMMIT SECRETS)
+.env
+.streamlit/secrets.toml
+
+# Confidential Case Study Prompt & Local Notes
+Case_Study_Issuer_Authorization_Analytics.docx
+notes.md
+ML.md
+built.md
+image/
+.vscode/
+
+# Python Bytecode & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.tmp_mpl/
+
+# OS & IDE Artifacts
+.DS_Store
+Thumbs.db
