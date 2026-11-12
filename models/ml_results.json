@@ -1,7 +1,7 @@
 {
   "problem_choice": {
     "target": "fraud_flag (Transaction Fraud Probability at Authorization)",
-    "justification": "Issuer authorization performance is bounded by the twin tension between Fraud Losses and False-Positive Declines. In our portfolio, legacy static rules ('59 Suspected Fraud' and '05 Do Not Honor') falsely decline thousands of legitimate E-Commerce and high-ticket transactions while still letting ~31% of true fraud slip through into post-auth chargebacks. Predicting fraud probability accurately allows the issuer to simultaneously auto-approve low-risk transactions (lifting overall approval rate and recovering lost interchange) while blocking high-risk fraud before settlement."
+    "justification": "Real-time AI risk scoring accurately separates legitimate shoppers from fraudsters.\n\n\u2022 This allows banks to boost card approvals and revenue while blocking real fraud attacks before settlement."
   },
   "validation_split": {
     "strategy": "Strict Chronological / Out-of-Time Split (Zero Future Leakage)",
