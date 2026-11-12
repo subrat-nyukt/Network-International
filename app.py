@@ -669,7 +669,11 @@ with tabs[1]:
             alt.Chart(sec_df)
             .mark_bar()
             .encode(
-                x=alt.X("three_ds_indicator:N", title="3DS Authentication Status", axis=alt.Axis(labelAngle=-15)),
+                x=alt.X(
+                    "three_ds_indicator:N",
+                    title="3DS Authentication Status",
+                    axis=alt.Axis(labelAngle=-30, labelOverlap=False, labelLimit=0),
+                ),
                 y=alt.Y("approval_rate:Q", title="Approval Rate (%)", scale=alt.Scale(domain=[0, 100])),
                 xOffset="tokenization_indicator:N",
                 color=alt.Color(
@@ -876,7 +880,7 @@ with tabs[2]:
                         "week_label:N",
                         sort=week_order,
                         title="Week",
-                        axis=alt.Axis(labelAngle=-45),
+                        axis=alt.Axis(labelAngle=-45, labelOverlap=False, labelLimit=0),
                     ),
                     y=alt.Y("declines:Q", title="Weekly Declines"),
                     color=alt.Color("decline_reason:N", title="Decline Reason", scale=alt.Scale(scheme="tableau10")),
@@ -972,7 +976,7 @@ with tabs[2]:
                         "ticket_size_bucket:N",
                         sort=["<$25", "$25-$100", "$100-$500", "$500+"],
                         title="Ticket Size Bracket",
-                        axis=alt.Axis(labelAngle=0),
+                        axis=alt.Axis(labelAngle=0, labelOverlap=False, labelLimit=0),
                     ),
                     y=alt.Y("Rate (%):Q", title="% of All Transactions Declined"),
                     xOffset="Decline Bucket:N",
@@ -1122,23 +1126,41 @@ with tabs[3]:
                 .sort_values("chargeback_lifecycle_stage")
             )
             cb_s["share_pct"] = (cb_s["cb_count"] / len(cb_only) * 100).round(2)
+            cb_s["label"] = cb_s["cb_count"].map(lambda x: f"{x:,}")
 
-            cb_s_chart = (
-                alt.Chart(cb_s)
-                .mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5)
-                .encode(
-                    x=alt.X("chargeback_lifecycle_stage:N", title="Lifecycle Stage", axis=alt.Axis(labelAngle=-15)),
-                    y=alt.Y("cb_count:Q", title="Dispute Cases"),
-                    color=alt.Color("chargeback_lifecycle_stage:N", legend=None, scale=alt.Scale(scheme="purples")),
-                    tooltip=[
-                        alt.Tooltip("chargeback_lifecycle_stage:N", title="Stage"),
-                        alt.Tooltip("cb_count:Q", title="Cases", format=","),
-                        alt.Tooltip("share_pct:Q", title="Share (%)", format=".2f"),
-                        alt.Tooltip("cb_usd:Q", title="Disputed Value ($)", format="$,.0f"),
+            max_cb_y = float(cb_s["cb_count"].max()) * 1.15 if len(cb_s) > 0 else 100
+
+            cb_s_base = alt.Chart(cb_s).encode(
+                x=alt.X(
+                    "chargeback_lifecycle_stage:N",
+                    sort=[
+                        "1. First Chargeback",
+                        "2. Representment",
+                        "3. Pre-Arbitration",
+                        "4. Resolved - Issuer Won",
+                        "4. Write-Off - Issuer Lost",
                     ],
-                )
-                .properties(height=300)
+                    title="Lifecycle Stage",
+                    axis=alt.Axis(labelAngle=-35, labelOverlap=False, labelLimit=0),
+                ),
+                y=alt.Y("cb_count:Q", title="Dispute Cases", scale=alt.Scale(domain=[0, max_cb_y])),
             )
+
+            cb_s_bars = cb_s_base.mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5).encode(
+                color=alt.Color("chargeback_lifecycle_stage:N", legend=None, scale=alt.Scale(scheme="purples")),
+                tooltip=[
+                    alt.Tooltip("chargeback_lifecycle_stage:N", title="Stage"),
+                    alt.Tooltip("cb_count:Q", title="Cases", format=","),
+                    alt.Tooltip("share_pct:Q", title="Share (%)", format=".2f"),
+                    alt.Tooltip("cb_usd:Q", title="Disputed Value ($)", format="$,.0f"),
+                ],
+            )
+
+            cb_s_text = cb_s_base.mark_text(dy=-8, fontWeight="bold", fontSize=11).encode(
+                text=alt.Text("label:N"),
+            )
+
+            cb_s_chart = (cb_s_bars + cb_s_text).properties(height=320)
             st.altair_chart(cb_s_chart, use_container_width=True)
 
 
