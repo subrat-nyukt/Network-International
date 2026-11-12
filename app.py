@@ -561,7 +561,7 @@ with tabs[0]:
         st.altair_chart(chart_daily, use_container_width=True)
 
     with col_ov2:
-        st.markdown("##### 🛣️ Channel Mix & Approval Rate Shading")
+        st.markdown("##### 🛣️ Channel Mix & Approval Rate")
         ch_df = (
             df_auth.groupby("channel", observed=True)
             .agg(
