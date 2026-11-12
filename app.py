@@ -851,22 +851,37 @@ with tabs[2]:
 
         with col_d2:
             st.markdown("##### 📈 Weekly Decline Volume Trend by Reason")
-            # Weekly decline trend by top reasons
+            # Weekly decline trend with explicit Week 1, Week 2, ... labels
+            declined_df_trend = declined_df.assign(
+                week_start=pd.to_datetime(declined_df["date"]).dt.to_period("W").apply(lambda r: r.start_time)
+            )
+            unique_weeks = sorted(declined_df_trend["week_start"].unique())
+            week_map = {w: f"Week {i+1}" for i, w in enumerate(unique_weeks)}
+            week_order = [f"Week {i+1}" for i in range(len(unique_weeks))]
+
             dec_trend = (
-                declined_df.assign(week=pd.to_datetime(declined_df["date"]).dt.to_period("W").apply(lambda r: r.start_time))
-                .groupby(["week", "decline_reason"], observed=True)
+                declined_df_trend.groupby(["week_start", "decline_reason"], observed=True)
                 .size()
                 .reset_index(name="declines")
             )
+            dec_trend["week_label"] = dec_trend["week_start"].map(week_map)
+            dec_trend["date_str"] = dec_trend["week_start"].dt.strftime("%b %d")
+            dec_trend["week_tooltip"] = dec_trend["week_label"] + " (Week of " + dec_trend["date_str"] + ")"
+
             dt_chart = (
                 alt.Chart(dec_trend)
                 .mark_area(opacity=0.75)
                 .encode(
-                    x=alt.X("week:T", title="Week"),
+                    x=alt.X(
+                        "week_label:N",
+                        sort=week_order,
+                        title="Week",
+                        axis=alt.Axis(labelAngle=-45),
+                    ),
                     y=alt.Y("declines:Q", title="Weekly Declines"),
                     color=alt.Color("decline_reason:N", title="Decline Reason", scale=alt.Scale(scheme="tableau10")),
                     tooltip=[
-                        alt.Tooltip("week:T", title="Week Starting"),
+                        alt.Tooltip("week_tooltip:N", title="Timeline"),
                         alt.Tooltip("decline_reason:N", title="Decline Reason"),
                         alt.Tooltip("declines:Q", title="Decline Count", format=","),
                     ],
