@@ -622,28 +622,36 @@ with tabs[1]:
             .sort_values("approval_rate", ascending=True)
         )
 
-        acq_chart = (
-            alt.Chart(acq_df)
-            .mark_bar(cornerRadiusTopRight=6, cornerRadiusBottomRight=6)
-            .encode(
-                y=alt.Y("acquirer:N", sort=acq_df["acquirer"].tolist(), title="Acquirer Processor"),
-                x=alt.X("approval_rate:Q", title="Authorization Approval Rate (%)", scale=alt.Scale(domain=[0, 100])),
-                color=alt.condition(
-                    alt.datum.acquirer == "LegacySwitch_Bank",
-                    alt.value("#ef4444"),
-                    alt.value("#2563eb"),
-                ),
-                tooltip=[
-                    alt.Tooltip("acquirer:N", title="Acquirer"),
-                    alt.Tooltip("approval_rate:Q", title="Approval Rate (%)", format=".2f"),
-                    alt.Tooltip("tech_err_rate:Q", title="Tech/Switch Error Rate (%)", format=".2f"),
-                    alt.Tooltip("cvv_err_rate:Q", title="Invalid CVV Rate (%)", format=".2f"),
-                    alt.Tooltip("tokenized_pct:Q", title="Tokenized Share (%)", format=".1f"),
-                    alt.Tooltip("tx_count:Q", title="Transactions", format=","),
-                ],
-            )
-            .properties(height=300)
+        acq_df["label_text"] = acq_df["approval_rate"].map(lambda x: f"{x:.1f}%")
+        acq_base = alt.Chart(acq_df).encode(
+            y=alt.Y("acquirer:N", sort=acq_df["acquirer"].tolist(), title="Acquirer Processor"),
+            x=alt.X("approval_rate:Q", title="Authorization Approval Rate (%)", scale=alt.Scale(domain=[0, 100])),
         )
+        acq_bars = acq_base.mark_bar(cornerRadiusTopRight=6, cornerRadiusBottomRight=6).encode(
+            color=alt.condition(
+                alt.datum.acquirer == "LegacySwitch_Bank",
+                alt.value("#ef4444"),
+                alt.value("#2563eb"),
+            ),
+            tooltip=[
+                alt.Tooltip("acquirer:N", title="Acquirer"),
+                alt.Tooltip("approval_rate:Q", title="Approval Rate (%)", format=".2f"),
+                alt.Tooltip("tech_err_rate:Q", title="Tech/Switch Error Rate (%)", format=".2f"),
+                alt.Tooltip("cvv_err_rate:Q", title="Invalid CVV Rate (%)", format=".2f"),
+                alt.Tooltip("tokenized_pct:Q", title="Tokenized Share (%)", format=".1f"),
+                alt.Tooltip("tx_count:Q", title="Transactions", format=","),
+            ],
+        )
+        acq_text = acq_base.mark_text(
+            align="right",
+            dx=-8,
+            fontWeight="bold",
+            fontSize=11,
+            color="#ffffff",
+        ).encode(
+            text=alt.Text("label_text:N"),
+        )
+        acq_chart = (acq_bars + acq_text).properties(height=300)
         st.altair_chart(acq_chart, use_container_width=True)
 
     with col_au2:
@@ -682,6 +690,7 @@ with tabs[1]:
         st.altair_chart(sec_chart, use_container_width=True)
 
     # Merchant Authorization Table & Chart
+    st.markdown("<div style='margin-top: 1.75rem;'></div>", unsafe_allow_html=True)
     st.markdown("##### 🏪 Authorization Performance by Merchant")
     merch_df = (
         df_auth.groupby(["merchant", "mcc_category", "mcc_risk_tier"], observed=True)
@@ -700,28 +709,37 @@ with tabs[1]:
 
     col_au3, col_au4 = st.columns([1.2, 1.3])
     with col_au3:
-        bottom_merch = merch_df.head(12)
-        m_chart = (
-            alt.Chart(bottom_merch)
-            .mark_bar(cornerRadiusTopRight=4, cornerRadiusBottomRight=4)
-            .encode(
-                y=alt.Y("merchant:N", sort=bottom_merch["merchant"].tolist(), title="Merchant (Lowest 12 Approval)"),
-                x=alt.X("approval_rate:Q", title="Approval Rate (%)"),
-                color=alt.Color(
-                    "mcc_risk_tier:N",
-                    title="MCC Risk Tier",
-                    scale=alt.Scale(domain=["Low", "Medium", "High"], range=["#10b981", "#f59e0b", "#ef4444"]),
-                ),
-                tooltip=[
-                    alt.Tooltip("merchant:N", title="Merchant"),
-                    alt.Tooltip("mcc_category:N", title="MCC Category"),
-                    alt.Tooltip("approval_rate:Q", title="Approval Rate (%)", format=".2f"),
-                    alt.Tooltip("fraud_rate:Q", title="Fraud Rate (%)", format=".2f"),
-                    alt.Tooltip("tx_count:Q", title="Transactions", format=","),
-                ],
-            )
-            .properties(height=340, title="12 Lowest-Approval Merchants by Risk Tier")
+        bottom_merch = merch_df.head(12).copy()
+        bottom_merch["label_text"] = bottom_merch["approval_rate"].map(lambda x: f"{x:.1f}%")
+
+        m_base = alt.Chart(bottom_merch).encode(
+            y=alt.Y("merchant:N", sort=bottom_merch["merchant"].tolist(), title="Merchant (Lowest 12 Approval)"),
+            x=alt.X("approval_rate:Q", title="Approval Rate (%)", scale=alt.Scale(domain=[0, 100])),
         )
+        m_bars = m_base.mark_bar(cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
+            color=alt.Color(
+                "mcc_risk_tier:N",
+                title="MCC Risk Tier",
+                scale=alt.Scale(domain=["Low", "Medium", "High"], range=["#10b981", "#f59e0b", "#ef4444"]),
+            ),
+            tooltip=[
+                alt.Tooltip("merchant:N", title="Merchant"),
+                alt.Tooltip("mcc_category:N", title="MCC Category"),
+                alt.Tooltip("approval_rate:Q", title="Approval Rate (%)", format=".2f"),
+                alt.Tooltip("fraud_rate:Q", title="Fraud Rate (%)", format=".2f"),
+                alt.Tooltip("tx_count:Q", title="Transactions", format=","),
+            ],
+        )
+        m_text = m_base.mark_text(
+            align="right",
+            dx=-8,
+            fontWeight="bold",
+            fontSize=11,
+            color="#ffffff",
+        ).encode(
+            text=alt.Text("label_text:N"),
+        )
+        m_chart = (m_bars + m_text).properties(height=340, title="12 Lowest-Approval Merchants by Risk Tier")
         st.altair_chart(m_chart, use_container_width=True)
 
     with col_au4:
