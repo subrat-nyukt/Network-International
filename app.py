@@ -802,7 +802,7 @@ with tabs[2]:
             tot_df["label"] = tot_df.apply(lambda r: f"{r.total_count:,} ({r.share_pct:.1f}%)", axis=1)
             sort_order = tot_df.sort_values("total_count", ascending=False)["decline_reason"].tolist()
 
-            max_x = float(tot_df["total_count"].max()) * 1.25 if len(tot_df) > 0 else 1000
+            max_x = float(tot_df["total_count"].max()) * 1.30 if len(tot_df) > 0 else 1000
 
             r_bars = (
                 alt.Chart(reason_df)
@@ -812,7 +812,7 @@ with tabs[2]:
                     x=alt.X("decline_count:Q", title="Declined Transactions Count", scale=alt.Scale(domain=[0, max_x])),
                     color=alt.Color(
                         "decline_type:N",
-                        title="Decline Classification",
+                        legend=alt.Legend(orient="top", title=None, direction="horizontal"),
                         scale=alt.Scale(
                             domain=["Soft Decline (Recoverable)", "Hard Decline"],
                             range=["#f59e0b", "#dc2626"],
