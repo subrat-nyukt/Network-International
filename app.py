@@ -195,6 +195,61 @@ st.markdown(
         margin-bottom: 0.55rem;
         line-height: 1.35;
     }
+
+    /* =========================================================================
+       TIER-1 ENTERPRISE SEGMENTED NAVIGATION DOCK (Tabs)
+       ========================================================================= */
+    div[data-baseweb="tab-list"] {
+        gap: 0.35rem !important;
+        background: #f1f5f9 !important;
+        padding: 0.40rem 0.50rem !important;
+        border-radius: 12px !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02) !important;
+        margin-top: 0.4rem !important;
+        margin-bottom: 1.25rem !important;
+        overflow-x: auto !important;
+        scrollbar-width: thin !important;
+    }
+    div[data-baseweb="tab-border"] {
+        display: none !important;
+    }
+    div[data-baseweb="tab-highlight"] {
+        display: none !important;
+    }
+    button[data-baseweb="tab"] {
+        height: auto !important;
+        padding: 0.55rem 1.05rem !important;
+        border-radius: 8px !important;
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        color: #475569 !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        letter-spacing: 0.01em !important;
+        transition: all 0.18s ease-in-out !important;
+        white-space: nowrap !important;
+    }
+    button[data-baseweb="tab"]:hover {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #1e293b !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06) !important;
+        transform: translateY(-1px) !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        background: #2563eb !important;
+        border: 1px solid #1d4ed8 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+        transform: translateY(-1px) !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] p,
+    button[data-baseweb="tab"][aria-selected="true"] span,
+    button[data-baseweb="tab"][aria-selected="true"] div {
+        color: #ffffff !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -433,7 +488,14 @@ with k6:
         unsafe_allow_html=True,
     )
 
-st.write("")
+st.markdown(
+    """<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; margin-bottom: -0.15rem;">
+        <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #334155; display: flex; align-items: center; gap: 0.45rem;">
+            🧭 Analytical Workspaces & Intelligence Views <span style="font-weight: 500; color: #64748b; font-size: 0.75rem;">— Click any tab below to switch views:</span>
+        </span>
+    </div>""",
+    unsafe_allow_html=True,
+)
 
 # -----------------------------------------------------------------------------
 # MAIN NAVIGATION TABS (5 Required Views + ML Simulator + AI Insights Engine)
