@@ -780,6 +780,7 @@ with tabs[2]:
         col_d1, col_d2 = st.columns(2)
 
         with col_d1:
+            st.markdown("##### 📉 Top Decline Reasons (Soft vs. Hard Classification)")
             reason_df = (
                 declined_df.groupby(["decline_reason", "response_code", "decline_type"], observed=True)
                 .agg(
@@ -792,12 +793,23 @@ with tabs[2]:
             )
             reason_df["share_pct"] = (reason_df["decline_count"] / len(declined_df) * 100).round(2)
 
-            r_chart = (
+            tot_df = (
+                declined_df.groupby("decline_reason", observed=True)
+                .size()
+                .reset_index(name="total_count")
+            )
+            tot_df["share_pct"] = (tot_df["total_count"] / len(declined_df) * 100).round(1)
+            tot_df["label"] = tot_df.apply(lambda r: f"{r.total_count:,} ({r.share_pct:.1f}%)", axis=1)
+            sort_order = tot_df.sort_values("total_count", ascending=False)["decline_reason"].tolist()
+
+            max_x = float(tot_df["total_count"].max()) * 1.25 if len(tot_df) > 0 else 1000
+
+            r_bars = (
                 alt.Chart(reason_df)
-                .mark_bar(cornerRadiusTopRight=5, cornerRadiusBottomRight=5)
+                .mark_bar(cornerRadiusTopRight=4, cornerRadiusBottomRight=4)
                 .encode(
-                    y=alt.Y("decline_reason:N", sort="-x", title="Decline Reason"),
-                    x=alt.X("decline_count:Q", title="Declined Transactions Count"),
+                    y=alt.Y("decline_reason:N", sort=sort_order, title="Decline Reason"),
+                    x=alt.X("decline_count:Q", title="Declined Transactions Count", scale=alt.Scale(domain=[0, max_x])),
                     color=alt.Color(
                         "decline_type:N",
                         title="Decline Classification",
@@ -815,11 +827,30 @@ with tabs[2]:
                         alt.Tooltip("lost_usd:Q", title="Declined Value ($)", format="$,.0f"),
                     ],
                 )
-                .properties(height=320, title="Top Decline Reasons (Soft vs. Hard Classification)")
             )
+
+            r_text = (
+                alt.Chart(tot_df)
+                .mark_text(
+                    align="left",
+                    baseline="middle",
+                    dx=6,
+                    fontWeight="bold",
+                    fontSize=11,
+                    color="#1e293b",
+                )
+                .encode(
+                    y=alt.Y("decline_reason:N", sort=sort_order),
+                    x=alt.X("total_count:Q"),
+                    text=alt.Text("label:N"),
+                )
+            )
+
+            r_chart = (r_bars + r_text).properties(height=320)
             st.altair_chart(r_chart, use_container_width=True)
 
         with col_d2:
+            st.markdown("##### 📈 Weekly Decline Volume Trend by Reason")
             # Weekly decline trend by top reasons
             dec_trend = (
                 declined_df.assign(week=pd.to_datetime(declined_df["date"]).dt.to_period("W").apply(lambda r: r.start_time))
@@ -840,11 +871,12 @@ with tabs[2]:
                         alt.Tooltip("declines:Q", title="Decline Count", format=","),
                     ],
                 )
-                .properties(height=320, title="Weekly Decline Volume Trend by Reason")
+                .properties(height=320)
             )
             st.altair_chart(dt_chart, use_container_width=True)
 
         # Second row: Heatmap of Decline Rate by MCC × Ticket Size + Ticket Size Breakdown
+        st.markdown("<div style='margin-top: 1.75rem;'></div>", unsafe_allow_html=True)
         col_d3, col_d4 = st.columns([1.35, 1.0])
 
         with col_d3:
