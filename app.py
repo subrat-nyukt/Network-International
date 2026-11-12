@@ -574,29 +574,39 @@ with tabs[0]:
             .reset_index()
         )
         ch_df["share_pct"] = (ch_df["tx_count"] / len(df_auth) * 100).round(2)
+        ch_df["label"] = ch_df["share_pct"].map(lambda x: f"{x:.1f}%")
 
-        ch_chart = (
-            alt.Chart(ch_df)
-            .mark_bar(cornerRadiusTopRight=6, cornerRadiusBottomRight=6)
-            .encode(
-                y=alt.Y("channel:N", sort="-x", title="Channel"),
-                x=alt.X("share_pct:Q", title="Share of Transactions (%)"),
-                color=alt.Color(
-                    "approval_rate:Q",
-                    title="Approval %",
-                    scale=alt.Scale(scheme="blues", domain=[80, 98]),
-                ),
-                tooltip=[
-                    alt.Tooltip("channel:N", title="Channel"),
-                    alt.Tooltip("tx_count:Q", title="Transactions", format=","),
-                    alt.Tooltip("share_pct:Q", title="Volume Share (%)", format=".2f"),
-                    alt.Tooltip("approval_rate:Q", title="Approval Rate (%)", format=".2f"),
-                    alt.Tooltip("fraud_rate:Q", title="Fraud Rate (%)", format=".2f"),
-                    alt.Tooltip("avg_ticket:Q", title="Avg Ticket ($)", format="$,.2f"),
-                ],
-            )
-            .properties(height=320)
+        max_ch_x = float(ch_df["share_pct"].max()) * 1.22 if len(ch_df) > 0 else 60.0
+
+        ch_base = alt.Chart(ch_df).encode(
+            y=alt.Y("channel:N", sort="-x", title="Channel"),
+            x=alt.X("share_pct:Q", title="Share of Transactions (%)", scale=alt.Scale(domain=[0, max_ch_x])),
         )
+        ch_bars = ch_base.mark_bar(cornerRadiusTopRight=6, cornerRadiusBottomRight=6).encode(
+            color=alt.Color(
+                "approval_rate:Q",
+                title="Approval %",
+                scale=alt.Scale(scheme="blues", domain=[80, 98]),
+            ),
+            tooltip=[
+                alt.Tooltip("channel:N", title="Channel"),
+                alt.Tooltip("tx_count:Q", title="Transactions", format=","),
+                alt.Tooltip("share_pct:Q", title="Volume Share (%)", format=".2f"),
+                alt.Tooltip("approval_rate:Q", title="Approval Rate (%)", format=".2f"),
+                alt.Tooltip("fraud_rate:Q", title="Fraud Rate (%)", format=".2f"),
+                alt.Tooltip("avg_ticket:Q", title="Avg Ticket ($)", format="$,.2f"),
+            ],
+        )
+        ch_text = ch_base.mark_text(
+            align="left",
+            dx=6,
+            fontSize=11,
+            fontWeight="bold",
+            color="#0f172a",
+        ).encode(
+            text=alt.Text("label:N"),
+        )
+        ch_chart = (ch_bars + ch_text).properties(height=320)
         st.altair_chart(ch_chart, use_container_width=True)
 
     # Second row: Payday Cycle Effect (Day of Month) & Monthly Summary
@@ -653,18 +663,29 @@ with tabs[0]:
 
     with col_ov4:
         st.markdown("##### 📋 Channel Performance Summary Table")
+        ch_formatted = pd.DataFrame({
+            "Channel": ch_df["channel"],
+            "Tx Count": ch_df["tx_count"].map(lambda x: f"{x:,}"),
+            "Share (%)": ch_df["share_pct"].map(lambda x: f"{x:.1f}%"),
+            "Total Spend ($)": ch_df["volume_usd"].map(lambda x: f"${x:,.0f}"),
+            "Avg Ticket ($)": ch_df["avg_ticket"].map(lambda x: f"${x:,.2f}"),
+            "Approval Rate (%)": ch_df["approval_rate"].map(lambda x: f"{x:.2f}%"),
+            "True Fraud Rate (%)": ch_df["fraud_rate"].map(lambda x: f"{x:.2f}%"),
+        })
+        tot_row = pd.DataFrame([{
+            "Channel": "Portfolio Total / Avg",
+            "Tx Count": f"{len(df_auth):,}",
+            "Share (%)": "100.0%",
+            "Total Spend ($)": f"${float(df_auth['amount'].sum()):,.0f}",
+            "Avg Ticket ($)": f"${float(df_auth['amount'].mean()):,.2f}",
+            "Approval Rate (%)": f"{float(df_auth['is_approved'].mean()*100):.2f}%",
+            "True Fraud Rate (%)": f"{float(df_auth['fraud_flag'].mean()*100):.2f}%",
+        }])
+        ch_display = pd.concat([ch_formatted, tot_row], ignore_index=True)
+
         st.dataframe(
-            ch_df[["channel", "tx_count", "share_pct", "volume_usd", "avg_ticket", "approval_rate", "fraud_rate"]].rename(
-                columns={
-                    "channel": "Channel",
-                    "tx_count": "Tx Count",
-                    "share_pct": "Share (%)",
-                    "volume_usd": "Total Spend ($)",
-                    "avg_ticket": "Avg Ticket ($)",
-                    "approval_rate": "Approval Rate (%)",
-                    "fraud_rate": "True Fraud Rate (%)",
-                }
-            ),
+            ch_display,
+            height=215,
             use_container_width=True,
             hide_index=True,
         )
