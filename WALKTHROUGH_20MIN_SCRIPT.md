@@ -6,7 +6,7 @@ Use this structured timeline during your **20-minute live presentation** so you 
 
 ## ⏱️ Minute 0:00 – 2:30 | Business Framing & End-to-End Architecture
 * **What to say:**
-  > *"Every card-issuing bank faces a core tension: if authorization rules are too strict, we falsely decline good customers—losing 1.75% interchange revenue and top-of-wallet loyalty. If rules are too loose, fraud and chargebacks spike. I built an end-to-end Issuer Authorization & Risk Intelligence Platform covering four pillars: (1) a 220,000-row synthetic authorization dataset + 110,000-row 3DS authentication dataset across 4 months, (2) an out-of-time XGBoost fraud probability model with SHAP explainability and a financial threshold simulator, (3) a 6-view interactive executive dashboard, and (4) a grounded AI Insights Engine."*
+  > *"Every card-issuing bank faces a core tension: if authorization rules are too strict, we falsely decline good customers—losing 1.75% interchange revenue and top-of-wallet loyalty. If rules are too loose, fraud and chargebacks spike. I built an end-to-end Issuer Authorization & Risk Intelligence Platform covering four pillars: (1) a 220,000-row synthetic authorization dataset + 134,191-row 3DS authentication dataset across 4 months, (2) an out-of-time XGBoost fraud probability model with SHAP explainability and a financial threshold simulator, (3) a 6-view interactive executive dashboard, and (4) a grounded AI Insights Engine."*
 
 ---
 
@@ -32,7 +32,7 @@ Use this structured timeline during your **20-minute live presentation** so you 
   * Point to the **Hour of Day chart**: highlight the red **01:00–05:00 Late-Night Attack Window** where fraud density is **3.6x higher** than daytime.
   * Point to the **Chargeback Reason Codes** (`10.4 CNP Fraud`, `13.1 Merchandise Not Received`, `13.2 Cancelled Recurring`) and **Lifecycle Funnel** (*First Chargeback $\rightarrow$ Representment $\rightarrow$ Pre-Arbitration $\rightarrow$ Write-Off*).
 * **Click on Tab 5 (`🔐 5. Authentication (3DS)`):**
-  * Explain the key domain insight: *"If a customer fails or abandons 3DS, the transaction dies before ever reaching Authorization! Here across 110,000 3DS attempts, we see an 88.1% pass rate, with drop-offs driven by `Cardholder Abandoned Challenge`, `OTP Timeout`, and `LegacySwitch_Bank` ACS technical errors."*
+  * Explain the key domain insight: *"If a customer fails or abandons 3DS, the transaction dies before ever reaching Authorization! Here across 134,191 3DS attempts (all CNP transactions), we see a 64.7% pass rate (86,819 authentications), with drop-offs driven by `Cardholder Abandoned Challenge`, `OTP Timeout`, and `LegacySwitch_Bank` ACS technical errors."*
 
 ---
 

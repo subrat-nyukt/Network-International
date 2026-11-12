@@ -221,7 +221,7 @@ def generate_all_snapshots() -> None:
     # -------------------------------------------------------------------------
     fig, axes = plt.subplots(1, 2, figsize=(14.5, 5.5))
     fig.suptitle(
-        f"View 5 — 3DS Authentication Funnel (110,000 Attempts | Overall Pass Rate: {df_3ds['is_auth_success'].mean()*100:.2f}%)",
+        f"View 5 — 3DS Authentication Funnel (134,191 Attempts | Overall Pass Rate: {df_3ds['is_auth_success'].mean()*100:.2f}%)",
         fontsize=13,
         fontweight="bold",
         color="#0f172a",

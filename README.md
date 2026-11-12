@@ -2,7 +2,7 @@
 
 **End-to-End Technical Case Study Solution | AI Data Scientist**
 
-An end-to-end issuer-side payment analytics platform combining **realistic synthetic payment data generation (220,000 authorization rows + 110,000 3DS authentication logs across 4 months)**, a **time-based machine learning fraud scoring pipeline (Logistic Regression Baseline vs. XGBoost + SHAP + Operating Threshold Simulator)**, a **6-view executive web dashboard**, and a **grounded LLM-powered AI Insights Engine**.
+An end-to-end issuer-side payment analytics platform combining **realistic synthetic payment data generation (220,000 authorization rows + 134,191 3DS authentication logs across 4 months, mapped 1-to-1 with CNP transactions)**, a **time-based machine learning fraud scoring pipeline (Logistic Regression Baseline vs. XGBoost + SHAP + Operating Threshold Simulator)**, a **6-view executive web dashboard**, and a **grounded LLM-powered AI Insights Engine**.
 
 ---
 
@@ -60,14 +60,14 @@ python -m src.generate_fallback_visuals
 ```text
 ├── app.py                              # Main Streamlit Executive Dashboard (7 Tabs + Global Filters)
 ├── src/
-│   ├── data_generator.py               # Synthetic data generator (220k Auth Tx + 110k 3DS Logs, 4 months)
+│   ├── data_generator.py               # Synthetic data generator (220k Auth Tx + 134k 3DS Logs, 4 months)
 │   ├── ml_pipeline.py                  # Time-based split, LogReg vs XGBoost, SHAP, Threshold Economics
 │   ├── ai_engine.py                    # Deterministic context builder, LLM client & Grounding Guardrails
 │   ├── generate_fallback_visuals.py    # Generates high-res fallback PNG snapshots in screenshots/
 │   └── build_writeup_docx.py           # Builds the formatted 2-page Word write-up
 ├── data/
 │   ├── authorization_transactions.parquet  # 220,000 synthetic authorization records (Jul–Oct 2026)
-│   ├── authentication_3ds.parquet          # 110,000 synthetic 3DS authentication records
+│   ├── authentication_3ds.parquet          # 134,191 synthetic 3DS authentication records (1-to-1 CNP mapping)
 │   └── scored_predictions.parquet          # Out-of-time & portfolio ML scores, risk tiers & SHAP tags
 ├── models/
 │   ├── ml_results.json                 # Validation/Test metrics, ROC/PR curves, SHAP & Threshold curves

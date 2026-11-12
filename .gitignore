@@ -23,5 +23,6 @@ env/
 .DS_Store
 Thumbs.db
 ~$*
+data/*.xlsx
 src/models/
 Network-International/

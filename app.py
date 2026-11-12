@@ -314,6 +314,8 @@ threeds_mask = (
     & (df_3ds_full["tokenization_indicator"].isin(sel_tokens or all_tokens))
     & (df_3ds_full["ticket_size_bucket"].isin(sel_buckets or all_buckets))
 )
+if "three_ds_indicator" in df_3ds_full.columns:
+    threeds_mask = threeds_mask & (df_3ds_full["three_ds_indicator"].isin(sel_3ds or all_3ds))
 df_3ds = df_3ds_full.loc[threeds_mask]
 
 active_filters_dict = {
@@ -1078,7 +1080,7 @@ with tabs[3]:
 with tabs[4]:
     st.subheader("3D Secure (3DS) Authentication Analytics: Pre-Authorization Funnel")
     st.caption(
-        "Analyzes the separate 110,000-row 3DS Authentication dataset. Note that failed 3DS challenges abandon "
+        "Analyzes the 134,191-row 3DS Authentication dataset (1-to-1 mapped with all Card-Not-Present authorization transactions). Note that failed 3DS challenges abandon "
         "before reaching authorization—making 3DS health a critical hidden driver of customer conversion."
     )
 

@@ -3,7 +3,7 @@ Synthetic Data Generator for Issuer Authorization & 3DS Authentication Analytics
 
 Generates two linked, realistic payment datasets:
 1. Issuer Authorization Transactions (220,000 rows across 4 months: Jul–Oct 2026)
-2. 3DS Authentication Logs (110,000 rows across 4 months: Jul–Oct 2026)
+2. 3DS Authentication Logs (134,191 rows across 4 months: Jul–Oct 2026, mapping 1-to-1 to all CNP transactions)
 
 Built-in Domain Patterns & Documented Assumptions:
 - Channel & Security: POS Contactless / Chip & PIN have ~95-97% approval and ~0.15% fraud;
@@ -81,7 +81,7 @@ def _assign_ticket_bucket(amounts: np.ndarray) -> pd.Series:
 
 def generate_datasets(
     n_auth_rows: int = 220_000,
-    n_3ds_rows: int = 110_000,
+    n_3ds_rows: Optional[int] = None,
     seed: int = 42,
     force_regenerate: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -570,69 +570,65 @@ def generate_datasets(
         df_auth[col] = df_auth[col].astype("string")
 
     # -------------------------------------------------------------------------
-    # 11. GENERATE SEPARATE 3DS AUTHENTICATION DATASET (110,000 rows)
+    # 11. GENERATE SEPARATE 3DS AUTHENTICATION DATASET (134,191 rows)
     # -------------------------------------------------------------------------
-    cnp_pool = df_auth[df_auth["channel"].isin(["E-Commerce", "Recurring / MIT"])].sample(
-        n=n_3ds_rows, replace=True, random_state=seed
-    ).sort_values("timestamp").reset_index(drop=True)
+    # Directly link 1-to-1 to all CNP transactions (E-Commerce and Recurring / MIT)
+    cnp_pool = df_auth[df_auth["channel"].isin(["E-Commerce", "Recurring / MIT"])].copy().reset_index(drop=True)
+    if n_3ds_rows is not None and n_3ds_rows != len(cnp_pool):
+        cnp_pool = cnp_pool.sample(
+            n=n_3ds_rows, replace=(n_3ds_rows > len(cnp_pool)), random_state=seed
+        ).sort_values("timestamp").reset_index(drop=True)
+    n_3ds_rows = len(cnp_pool)
 
     amt_3ds = cnp_pool["amount"].to_numpy()
     risk_3ds = cnp_pool["mcc_risk_tier"].to_numpy()
     acq_3ds = cnp_pool["acquirer"].to_numpy()
     tok_3ds = cnp_pool["is_tokenized"].to_numpy()
     night_3ds = cnp_pool["is_late_night"].to_numpy()
+    tds_ind = cnp_pool["three_ds_indicator"].to_numpy()
+
+    # Exact 1-to-1 alignment with three_ds_indicator in df_auth:
+    # 3DS Frictionless (40,520) + 3DS Challenge Authenticated (46,299) = 86,819 Success
+    # No 3DS / Unauthenticated (47,372) = 47,372 Failure
+    is_success = np.isin(tds_ind, ["3DS Frictionless", "3DS Challenge Authenticated"])
+    auth_outcome = np.where(is_success, "Success", "Failure")
 
     mandates = np.empty(n_3ds_rows, dtype=object)
     u_m = rng.random(n_3ds_rows)
 
     is_low_val = amt_3ds < 35.0
-    is_high_risk_tx = (risk_3ds == "High") | (amt_3ds > 300.0) | (night_3ds == 1)
+    is_high_risk = (risk_3ds == "High") | (amt_3ds > 200.0) | (night_3ds == 1)
 
     for i in range(n_3ds_rows):
-        if is_low_val[i] and u_m[i] < 0.42:
-            mandates[i] = "TRA / Low-Value Exemption"
-        elif is_high_risk_tx[i]:
-            if u_m[i] < 0.48:
-                mandates[i] = "Issuer Risk-Based Challenge"
-            elif u_m[i] < 0.82:
-                mandates[i] = "Mandatory SCA Mandate"
-            else:
-                mandates[i] = "Frictionless (Low Risk)"
-        else:
-            if u_m[i] < 0.56:
-                mandates[i] = "Frictionless (Low Risk)"
-            elif u_m[i] < 0.80:
-                mandates[i] = "Mandatory SCA Mandate"
-            elif u_m[i] < 0.92:
-                mandates[i] = "Issuer Risk-Based Challenge"
-            else:
+        if tds_ind[i] == "3DS Frictionless":
+            if is_low_val[i] and u_m[i] < 0.65:
                 mandates[i] = "TRA / Low-Value Exemption"
-
-    base_fail_prob = np.where(
-        mandates == "Frictionless (Low Risk)", 0.025,
-        np.where(
-            mandates == "TRA / Low-Value Exemption", 0.018,
-            np.where(mandates == "Mandatory SCA Mandate", 0.145, 0.225)
-        )
-    )
-    fail_prob_3ds = np.clip(
-        base_fail_prob
-        + np.where(acq_3ds == "LegacySwitch_Bank", 0.095, 0.0)
-        + np.where(acq_3ds == "RegionalPay_ME", 0.025, 0.0)
-        - 0.038 * tok_3ds
-        + 0.035 * night_3ds,
-        0.008,
-        0.55,
-    )
-    is_auth_fail = rng.random(n_3ds_rows) < fail_prob_3ds
-    auth_outcome = np.where(is_auth_fail, "Failure", "Success")
+            else:
+                mandates[i] = "Frictionless (Low Risk)"
+        elif tds_ind[i] == "3DS Challenge Authenticated":
+            if is_high_risk[i]:
+                mandates[i] = "Mandatory SCA Mandate" if u_m[i] < 0.65 else "Issuer Risk-Based Challenge"
+            else:
+                mandates[i] = "Mandatory SCA Mandate" if u_m[i] < 0.50 else "Issuer Risk-Based Challenge"
+        else:  # No 3DS / Unauthenticated
+            if is_low_val[i] and u_m[i] < 0.08:
+                mandates[i] = "TRA / Low-Value Exemption"
+            elif is_high_risk[i]:
+                mandates[i] = "Issuer Risk-Based Challenge" if u_m[i] < 0.55 else "Mandatory SCA Mandate"
+            else:
+                if u_m[i] < 0.58:
+                    mandates[i] = "Mandatory SCA Mandate"
+                elif u_m[i] < 0.94:
+                    mandates[i] = "Issuer Risk-Based Challenge"
+                else:
+                    mandates[i] = "Frictionless (Low Risk)"
 
     failure_reason = np.full(n_3ds_rows, "Authenticated Successfully", dtype=object)
-    fail_indices = np.where(is_auth_fail)[0]
+    fail_indices = np.where(~is_success)[0]
     for idx in fail_indices:
         m_type = mandates[idx]
         acq_name = acq_3ds[idx]
-        if acq_name == "LegacySwitch_Bank" and rng.random() < 0.48:
+        if acq_name == "LegacySwitch_Bank" and rng.random() < 0.45:
             failure_reason[idx] = "ACS / Switch Technical Error"
         elif m_type in ("Frictionless (Low Risk)", "TRA / Low-Value Exemption"):
             failure_reason[idx] = rng.choice(
@@ -647,22 +643,23 @@ def generate_datasets(
                     "Wrong OTP / Biometric Failed",
                     "ACS / Switch Technical Error",
                 ],
-                p=[0.38, 0.28, 0.24, 0.10],
+                p=[0.42, 0.28, 0.20, 0.10],
             )
 
     base_lat = np.where(
-        mandates == "Frictionless (Low Risk)", 240,
-        np.where(mandates == "TRA / Low-Value Exemption", 190, 1450)
+        mandates == "Frictionless (Low Risk)", 220,
+        np.where(mandates == "TRA / Low-Value Exemption", 180, 1550)
     )
-    acq_lat_add = np.where(acq_3ds == "LegacySwitch_Bank", 620, np.where(acq_3ds == "RegionalPay_ME", 210, 0))
+    acq_lat_add = np.where(acq_3ds == "LegacySwitch_Bank", 580, np.where(acq_3ds == "RegionalPay_ME", 200, 0))
     latency_ms = np.clip(
-        rng.normal(loc=base_lat + acq_lat_add, scale=120, size=n_3ds_rows),
+        rng.normal(loc=base_lat + acq_lat_add, scale=140, size=n_3ds_rows),
         85,
         8500,
     ).astype(int)
 
     df_3ds = pd.DataFrame({
         "auth_id": [f"AUTH-{i:07d}" for i in range(1, n_3ds_rows + 1)],
+        "transaction_id": cnp_pool["transaction_id"].to_numpy(),
         "timestamp": cnp_pool["timestamp"].to_numpy(),
         "date": cnp_pool["date"].to_numpy(),
         "month": cnp_pool["month"].astype("string"),
@@ -678,9 +675,10 @@ def generate_datasets(
         "ticket_size_bucket": cnp_pool["ticket_size_bucket"].astype("string"),
         "tokenization_indicator": cnp_pool["tokenization_indicator"].astype("string"),
         "is_tokenized": tok_3ds.astype(np.int8),
+        "three_ds_indicator": cnp_pool["three_ds_indicator"].astype("string"),
         "challenge_mandate": pd.Series(mandates, dtype="string"),
         "auth_outcome": pd.Series(auth_outcome, dtype="string"),
-        "is_auth_success": (~is_auth_fail).astype(np.int8),
+        "is_auth_success": is_success.astype(np.int8),
         "failure_reason": pd.Series(failure_reason, dtype="string"),
         "latency_ms": latency_ms,
     })
