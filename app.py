@@ -1346,7 +1346,7 @@ with tabs[5]:
                 color=alt.Color(
                     "Model:N",
                     scale=alt.Scale(range=["#2563eb", "#94a3b8"]),
-                    legend=alt.Legend(orient="top", title=None),
+                    legend=alt.Legend(orient="top", title=None, labelLimit=300),
                 ),
                 tooltip=["Model:N", alt.Tooltip("recall:Q", format=".3f"), alt.Tooltip("precision:Q", format=".3f")],
             )
@@ -1367,7 +1367,7 @@ with tabs[5]:
                 color=alt.Color(
                     "Model:N",
                     scale=alt.Scale(range=["#2563eb", "#94a3b8"]),
-                    legend=alt.Legend(orient="top", title=None),
+                    legend=alt.Legend(orient="top", title=None, labelLimit=300),
                 ),
                 tooltip=["Model:N", alt.Tooltip("fpr:Q", format=".3f"), alt.Tooltip("tpr:Q", format=".3f")],
             )
