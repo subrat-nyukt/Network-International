@@ -1322,12 +1322,6 @@ with tabs[5]:
             "Out-of-Time Lift": f"+{(xgb_m['roc_auc'] - lr_m['roc_auc'])*100:.2f} pts",
         },
         {
-            "Evaluation Metric": "Brier Score (Calibration Error ↓ lower is better)",
-            "Logistic Regression (Baseline)": f"{lr_m['brier_score']:.5f}",
-            "XGBoost (Advanced Model)": f"{xgb_m['brier_score']:.5f}",
-            "Out-of-Time Lift": f"{(xgb_m['brier_score'] - lr_m['brier_score']):.5f}",
-        },
-        {
             "Evaluation Metric": "F1-Score @ Optimal Business Threshold (τ = 0.12)",
             "Logistic Regression (Baseline)": f"{lr_m['f1_at_threshold']:.4f}",
             "XGBoost (Advanced Model)": f"{xgb_m['f1_at_threshold']:.4f}",
