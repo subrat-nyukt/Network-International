@@ -1,24 +1,7 @@
 """
 AI Insights Engine for Issuer Authorization Analytics (Section 2D).
 
-Key Capabilities:
-1. Context-Aware Deterministic Aggregation (`build_dashboard_context`):
-   Serializes the active view, active global filter selections, filtered KPIs vs. bank
-   benchmarks, channel/acquirer/MCC breakdowns, decline pareto, 3DS authentication funnel,
-   seasonality anomalies, and ML model performance into a structured JSON context.
-2. Transparent Prompting:
-   Exposes both the exact `<DATA_CONTEXT>` JSON and `SYSTEM_PROMPT` to the UI so the user
-   can inspect everything sent to the model.
-3. Strict Grounding & Anti-Hallucination Guardrails:
-   - Pre-computes all rates, counts, and dollar figures in Python (no LLM mental math).
-   - Enforces temperature=0.1 and strict citation of supplied numbers only.
-   - Detects out-of-scope / unsupported queries (e.g. FICO score, customer age, salary,
-     competitor pricing) and explicitly flags why the claim cannot be supported from the data.
-4. Safe Key Handling & Offline Resilience:
-   - Reads `GROQ_API_KEY` or `GEMINI_API_KEY` strictly from server-side
-     environment variables (`.env`) or `st.secrets` (never hardcoded or sent to the client).
-   - Includes a deterministic Grounded Analytical Synthesis fallback so the feature works
-     out-of-the-box during offline grading or behind corporate firewalls.
+
 """
 
 from __future__ import annotations
