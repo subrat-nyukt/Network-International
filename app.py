@@ -994,14 +994,11 @@ with tabs[2]:
 # =============================================================================
 with tabs[3]:
     st.subheader("Fraud & Chargebacks: Risk Exposure, Diurnal Patterns & Dispute Lifecycle")
-    st.caption(
-        "Tracks confirmed fraud (both blocked at authorization and post-auth missed fraud) alongside "
-        "chargeback reason codes and dispute resolution lifecycle stages."
-    )
 
     col_f1, col_f2 = st.columns(2)
 
     with col_f1:
+        st.markdown("##### 🚨 True Fraud Rate (%) by MCC Category")
         mcc_fraud = (
             df_auth.groupby(["mcc_category", "mcc_risk_tier"], observed=True)
             .agg(
@@ -1032,11 +1029,12 @@ with tabs[3]:
                     alt.Tooltip("fraud_usd:Q", title="Fraud Volume ($)", format="$,.0f"),
                 ],
             )
-            .properties(height=310, title="True Fraud Rate (%) by MCC Category")
+            .properties(height=310)
         )
         st.altair_chart(f_mcc_chart, use_container_width=True)
 
     with col_f2:
+        st.markdown("##### 🌙 Late-Night Fraud Concentration (01:00–05:00)")
         hr_fraud = (
             df_auth.groupby("hour", observed=True)
             .agg(
@@ -1070,11 +1068,12 @@ with tabs[3]:
                     alt.Tooltip("tx_count:Q", title="Total Transactions", format=","),
                 ],
             )
-            .properties(height=310, title="Diurnal Pattern: Late-Night Fraud Concentration (01:00–05:00)")
+            .properties(height=310)
         )
         st.altair_chart(hr_chart, use_container_width=True)
 
     # Chargeback Reason & Lifecycle Stage
+    st.markdown("<div style='margin-top: 1.75rem;'></div>", unsafe_allow_html=True)
     cb_only = df_auth[df_auth["has_chargeback"] == 1]
     col_f3, col_f4 = st.columns(2)
 
@@ -1082,6 +1081,7 @@ with tabs[3]:
         st.info("No chargebacks present in the current filter slice.")
     else:
         with col_f3:
+            st.markdown("##### 📁 Chargebacks by Network Reason Code")
             cb_r = (
                 cb_only.groupby("chargeback_reason", observed=True)
                 .agg(
@@ -1106,11 +1106,12 @@ with tabs[3]:
                         alt.Tooltip("cb_usd:Q", title="Disputed Amount ($)", format="$,.0f"),
                     ],
                 )
-                .properties(height=300, title="Chargebacks by Network Reason Code")
+                .properties(height=300)
             )
             st.altair_chart(cb_r_chart, use_container_width=True)
 
         with col_f4:
+            st.markdown("##### 🔄 Chargeback Lifecycle Funnel (Notification -> Write-Off)")
             cb_s = (
                 cb_only.groupby("chargeback_lifecycle_stage", observed=True)
                 .agg(
@@ -1136,7 +1137,7 @@ with tabs[3]:
                         alt.Tooltip("cb_usd:Q", title="Disputed Value ($)", format="$,.0f"),
                     ],
                 )
-                .properties(height=300, title="Chargeback Lifecycle Funnel (Notification -> Write-Off)")
+                .properties(height=300)
             )
             st.altair_chart(cb_s_chart, use_container_width=True)
 
