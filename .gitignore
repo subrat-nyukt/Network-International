@@ -22,3 +22,5 @@ env/
 # OS & IDE Artifacts
 .DS_Store
 Thumbs.db
+~$*
+src/models/

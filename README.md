@@ -9,24 +9,31 @@ An end-to-end issuer-side payment analytics platform combining **realistic synth
 ## 🚀 Quick Start (Local Reproducible Run)
 
 ### 1. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 2. (Optional) Configure LLM API Key
-Copy `.env.example` to `.env` and add an API key (`OPENAI_API_KEY`, `GROQ_API_KEY`, or `GEMINI_API_KEY`):
+
+Copy `.env.example` to `.env` and add an API key (`GROQ_API_KEY` or `GEMINI_API_KEY`):
+
 ```bash
 cp .env.example .env
 ```
+
 > **Zero-Key Offline Resilience:** If no API key is configured (or if a corporate firewall blocks outbound API traffic), the dashboard's **AI Insights Engine** automatically uses its built-in **Deterministic Grounded Analytics Engine** so every feature works 100% out-of-the-box with zero configuration.
 
 ### 3. Launch the Interactive Web Dashboard
+
 ```bash
 streamlit run app.py
 ```
+
 *(Note: Pre-generated datasets in `data/*.parquet` and trained models in `models/*` are included and load in `<1 second`. If deleted, `app.py` automatically regenerates and retrains them on first boot.)*
 
 ### 4. Re-Run Data Generation & ML Training Manually (Optional)
+
 ```bash
 python -m src.data_generator
 python -m src.ml_pipeline
@@ -82,20 +89,25 @@ python -m src.generate_fallback_visuals
 In case external cloud links are blocked by corporate firewalls, high-resolution visual snapshots of every view are stored in `screenshots/`:
 
 ### View 1 — Portfolio Overview & Seasonality
+
 ![Overview and Seasonality](screenshots/01_overview_and_seasonality.png)
 
 ### View 2 — Authorization Performance (Acquirer, 3DS & Tokenization)
+
 ![Authorization Performance](screenshots/02_authorization_performance.png)
 
 ### View 3 — Decline Intelligence (Hard vs. Soft & MCC × Ticket Size Heatmap)
+
 ![Decline Intelligence](screenshots/03_decline_intelligence.png)
 
 ### View 4 — Fraud & Chargebacks (Diurnal Spike & Lifecycle Funnel)
+
 ![Fraud and Chargebacks](screenshots/04_fraud_and_chargebacks.png)
 
 ### View 5 — 3DS Authentication Pre-Authorization Funnel
+
 ![3DS Authentication Funnel](screenshots/05_authentication_3ds_funnel.png)
 
 ### View 6 — Machine Learning Model, SHAP Drivers & Threshold Business Impact
-![ML Model and Threshold Impact](screenshots/06_ml_model_shap_and_threshold_impact.png)
 
+![ML Model and Threshold Impact](screenshots/06_ml_model_shap_and_threshold_impact.png)
