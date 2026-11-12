@@ -440,10 +440,6 @@ tabs = st.tabs([
 # =============================================================================
 with tabs[0]:
     st.subheader("Portfolio Overview: Transaction Volumes, Approval Rate & Channel Mix")
-    st.caption(
-        "Hover over any data point for detailed tooltips. Notice the monthly post-payday approval lift (Days 25–5), "
-        "pre-payday cash crunch (Days 15–24), and the October 15–25 Cyber Retail Week surge."
-    )
 
     col_ov1, col_ov2 = st.columns([1.65, 1.0])
 
