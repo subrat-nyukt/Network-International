@@ -51,7 +51,7 @@ st.markdown(
     .block-container {
         padding-top: 1.2rem;
         padding-bottom: 2rem;
-        max-width: 1450px;
+        max-width: 100%;
     }
     .exec-header {
         background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
@@ -1202,42 +1202,43 @@ with tabs[5]:
             ])
             st.dataframe(split_table, use_container_width=True, hide_index=True)
 
-    # 2. Baseline vs Advanced Model Comparison & ROC / PR Curves
+    # 2. Baseline vs Advanced Model Comparison & Diagnostic Curves (Responsive 2-Row Layout)
     lr_m = ml_results["models"]["baseline_logistic_regression"]["test_metrics"]
     xgb_m = ml_results["models"]["advanced_xgboost"]["test_metrics"]
 
-    m_col1, m_col2, m_col3 = st.columns([1.15, 1.0, 1.0])
-    with m_col1:
-        st.markdown("##### 🏆 Out-of-Time Test Set: Baseline vs. Advanced")
-        comp_df = pd.DataFrame([
-            {
-                "Metric": "PR-AUC (Average Precision) ★",
-                "Logistic Regression (Baseline)": f"{lr_m['pr_auc']:.4f}",
-                "XGBoost (Advanced)": f"{xgb_m['pr_auc']:.4f}",
-                "Lift": f"+{(xgb_m['pr_auc'] - lr_m['pr_auc'])*100:.2f} pts",
-            },
-            {
-                "Metric": "ROC-AUC",
-                "Logistic Regression (Baseline)": f"{lr_m['roc_auc']:.4f}",
-                "XGBoost (Advanced)": f"{xgb_m['roc_auc']:.4f}",
-                "Lift": f"+{(xgb_m['roc_auc'] - lr_m['roc_auc'])*100:.2f} pts",
-            },
-            {
-                "Metric": "Brier Score (Calibration ↓)",
-                "Logistic Regression (Baseline)": f"{lr_m['brier_score']:.5f}",
-                "XGBoost (Advanced)": f"{xgb_m['brier_score']:.5f}",
-                "Lift": f"{(xgb_m['brier_score'] - lr_m['brier_score']):.5f}",
-            },
-            {
-                "Metric": "F1-Score @ Optimal Threshold",
-                "Logistic Regression (Baseline)": f"{lr_m['f1_at_threshold']:.4f}",
-                "XGBoost (Advanced)": f"{xgb_m['f1_at_threshold']:.4f}",
-                "Lift": f"+{(xgb_m['f1_at_threshold'] - lr_m['f1_at_threshold'])*100:.2f} pts",
-            },
-        ])
-        st.dataframe(comp_df, use_container_width=True, hide_index=True)
+    st.markdown("##### 🏆 Out-of-Time Test Set: Baseline vs. Advanced Model Performance")
+    comp_df = pd.DataFrame([
+        {
+            "Evaluation Metric": "PR-AUC (Average Precision) ★ Primary Metric",
+            "Logistic Regression (Baseline)": f"{lr_m['pr_auc']:.4f}",
+            "XGBoost (Advanced Model)": f"{xgb_m['pr_auc']:.4f}",
+            "Out-of-Time Lift": f"+{(xgb_m['pr_auc'] - lr_m['pr_auc'])*100:.2f} pts",
+        },
+        {
+            "Evaluation Metric": "ROC-AUC (Discrimination)",
+            "Logistic Regression (Baseline)": f"{lr_m['roc_auc']:.4f}",
+            "XGBoost (Advanced Model)": f"{xgb_m['roc_auc']:.4f}",
+            "Out-of-Time Lift": f"+{(xgb_m['roc_auc'] - lr_m['roc_auc'])*100:.2f} pts",
+        },
+        {
+            "Evaluation Metric": "Brier Score (Calibration Error ↓ lower is better)",
+            "Logistic Regression (Baseline)": f"{lr_m['brier_score']:.5f}",
+            "XGBoost (Advanced Model)": f"{xgb_m['brier_score']:.5f}",
+            "Out-of-Time Lift": f"{(xgb_m['brier_score'] - lr_m['brier_score']):.5f}",
+        },
+        {
+            "Evaluation Metric": "F1-Score @ Optimal Business Threshold (τ = 0.12)",
+            "Logistic Regression (Baseline)": f"{lr_m['f1_at_threshold']:.4f}",
+            "XGBoost (Advanced Model)": f"{xgb_m['f1_at_threshold']:.4f}",
+            "Out-of-Time Lift": f"+{(xgb_m['f1_at_threshold'] - lr_m['f1_at_threshold'])*100:.2f} pts",
+        },
+    ])
+    st.dataframe(comp_df, use_container_width=True, hide_index=True)
 
-    with m_col2:
+    # Place PR-Curve and ROC-Curve side-by-side in 2 spacious columns with top-aligned legend
+    curv_col1, curv_col2 = st.columns(2)
+
+    with curv_col1:
         pr_xgb = pd.DataFrame(ml_results["pr_curve"]["xgb"]).assign(Model=f"XGBoost (PR-AUC={xgb_m['pr_auc']:.3f})")
         pr_lr = pd.DataFrame(ml_results["pr_curve"]["lr"]).assign(Model=f"LogReg Baseline (PR-AUC={lr_m['pr_auc']:.3f})")
         pr_df = pd.concat([pr_xgb, pr_lr], ignore_index=True)
@@ -1247,14 +1248,18 @@ with tabs[5]:
             .encode(
                 x=alt.X("recall:Q", title="Recall (Fraud Capture Rate)"),
                 y=alt.Y("precision:Q", title="Precision (Hit Rate)"),
-                color=alt.Color("Model:N", scale=alt.Scale(range=["#2563eb", "#94a3b8"])),
+                color=alt.Color(
+                    "Model:N",
+                    scale=alt.Scale(range=["#2563eb", "#94a3b8"]),
+                    legend=alt.Legend(orient="top", title=None),
+                ),
                 tooltip=["Model:N", alt.Tooltip("recall:Q", format=".3f"), alt.Tooltip("precision:Q", format=".3f")],
             )
-            .properties(height=250, title="Precision-Recall Curve (Out-of-Time Test)")
+            .properties(height=280, title="Precision-Recall Curve (Out-of-Time Test)")
         )
         st.altair_chart(pr_chart, use_container_width=True)
 
-    with m_col3:
+    with curv_col2:
         roc_xgb = pd.DataFrame(ml_results["roc_curve"]["xgb"]).assign(Model=f"XGBoost (AUC={xgb_m['roc_auc']:.3f})")
         roc_lr = pd.DataFrame(ml_results["roc_curve"]["lr"]).assign(Model=f"LogReg Baseline (AUC={lr_m['roc_auc']:.3f})")
         roc_df = pd.concat([roc_xgb, roc_lr], ignore_index=True)
@@ -1264,10 +1269,14 @@ with tabs[5]:
             .encode(
                 x=alt.X("fpr:Q", title="False Positive Rate (False Declines)"),
                 y=alt.Y("tpr:Q", title="True Positive Rate (Fraud Recall)"),
-                color=alt.Color("Model:N", scale=alt.Scale(range=["#2563eb", "#94a3b8"])),
+                color=alt.Color(
+                    "Model:N",
+                    scale=alt.Scale(range=["#2563eb", "#94a3b8"]),
+                    legend=alt.Legend(orient="top", title=None),
+                ),
                 tooltip=["Model:N", alt.Tooltip("fpr:Q", format=".3f"), alt.Tooltip("tpr:Q", format=".3f")],
             )
-            .properties(height=250, title="ROC Curve (Out-of-Time Test)")
+            .properties(height=280, title="ROC Curve (Out-of-Time Test)")
         )
         st.altair_chart(roc_chart, use_container_width=True)
 
