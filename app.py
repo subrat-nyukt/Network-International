@@ -1757,7 +1757,7 @@ with tabs[6]:
     with st.container(border=True):
         b_hdr1, b_hdr2 = st.columns([3.0, 1.2])
         with b_hdr1:
-            st.markdown("#### 📋 Board-Level 6-Point Executive Summary *(Max 2 Takeaways Per Section)*")
+            st.markdown("#### 📋 Board-Level 6-Point Executive Summary")
         with b_hdr2:
             st.caption(f"Engine: `{st.session_state['ai_mode_label']}`")
         st.markdown(st.session_state["ai_insights_md"])
