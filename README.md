@@ -63,8 +63,8 @@ python -m src.generate_fallback_visuals
 │   ├── data_generator.py               # Synthetic data generator (220k Auth Tx + 134k 3DS Logs, 4 months)
 │   ├── ml_pipeline.py                  # Time-based split, LogReg vs XGBoost, SHAP, Threshold Economics
 │   ├── ai_engine.py                    # Deterministic context builder, LLM client & Grounding Guardrails
-│   ├── generate_fallback_visuals.py    # Generates high-res fallback PNG snapshots in screenshots/
-│   └── build_writeup_docx.py           # Builds the formatted 2-page Word write-up
+│   
+│   
 ├── data/
 │   ├── authorization_transactions.parquet  # 220,000 synthetic authorization records (Jul–Oct 2026)
 │   ├── authentication_3ds.parquet          # 134,191 synthetic 3DS authentication records (1-to-1 CNP mapping)
@@ -74,9 +74,6 @@ python -m src.generate_fallback_visuals
 │   ├── xgb_model.joblib                # Trained XGBoost Classifier artifact
 │   └── lr_baseline.joblib              # Trained Logistic Regression Baseline pipeline
 ├── screenshots/                        # High-resolution fallback screenshots of all 6 dashboard views
-├── WRITEUP_2_PAGE.md                   # 2-Page Technical Write-Up (Markdown)
-├── Case_Study_Writeup_2Pages.docx      # 2-Page Technical Write-Up (Word .docx for submission)
-├── WALKTHROUGH_20MIN_SCRIPT.md         # 20-Minute Live Walkthrough Presentation Script & Q&A Guide
 ├── requirements.txt                    # Reproducible Python dependencies
 ├── .env.example                        # Template for backend API keys (no secrets committed)
 └── .gitignore                          # Excludes .env, secrets, and temp artifacts
