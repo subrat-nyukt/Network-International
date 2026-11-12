@@ -444,6 +444,7 @@ with tabs[0]:
     col_ov1, col_ov2 = st.columns([1.65, 1.0])
 
     with col_ov1:
+        st.markdown("##### 📈 Daily Transaction Volume (Bars) & Approval Rate % (Line)")
         daily_df = (
             df_auth.groupby("date", observed=True)
             .agg(
@@ -479,11 +480,12 @@ with tabs[0]:
         chart_daily = (
             alt.layer(bars, line)
             .resolve_scale(y="independent")
-            .properties(height=340, title="Daily Transaction Volume (Bars) & Approval Rate % (Line)")
+            .properties(height=320)
         )
         st.altair_chart(chart_daily, use_container_width=True)
 
     with col_ov2:
+        st.markdown("##### 🛣️ Channel Mix & Approval Rate Shading")
         ch_df = (
             df_auth.groupby("channel", observed=True)
             .agg(
@@ -517,13 +519,15 @@ with tabs[0]:
                     alt.Tooltip("avg_ticket:Q", title="Avg Ticket ($)", format="$,.2f"),
                 ],
             )
-            .properties(height=340, title="Channel Mix & Approval Rate Shading")
+            .properties(height=320)
         )
         st.altair_chart(ch_chart, use_container_width=True)
 
     # Second row: Payday Cycle Effect (Day of Month) & Monthly Summary
+    st.markdown("<div style='margin-top: 1.75rem;'></div>", unsafe_allow_html=True)
     col_ov3, col_ov4 = st.columns(2)
     with col_ov3:
+        st.markdown("##### 📅 Seasonality: Monthly Payday Cycle vs. Insufficient Funds Declines")
         dom_df = (
             df_auth.groupby("day_of_month", observed=True)
             .agg(
@@ -567,7 +571,7 @@ with tabs[0]:
                     alt.Tooltip("tx_count:Q", title="Transactions", format=","),
                 ],
             )
-            .properties(height=280, title="Seasonality: Monthly Payday Cycle vs. Insufficient Funds Declines")
+            .properties(height=280)
         )
         st.altair_chart(dom_chart, use_container_width=True)
 
@@ -603,6 +607,7 @@ with tabs[1]:
     col_au1, col_au2 = st.columns(2)
 
     with col_au1:
+        st.markdown("##### 🏦 Approval Rate by Acquirer (LegacySwitch_Bank Highlighted)")
         acq_df = (
             df_auth.groupby("acquirer", observed=True)
             .agg(
@@ -637,11 +642,12 @@ with tabs[1]:
                     alt.Tooltip("tx_count:Q", title="Transactions", format=","),
                 ],
             )
-            .properties(height=310, title="Approval Rate by Acquirer (LegacySwitch_Bank Highlighted)")
+            .properties(height=300)
         )
         st.altair_chart(acq_chart, use_container_width=True)
 
     with col_au2:
+        st.markdown("##### 🔐 Approval Rate by 3DS Status × Tokenization Indicator")
         sec_df = (
             df_auth.groupby(["three_ds_indicator", "tokenization_indicator"], observed=True)
             .agg(
@@ -671,7 +677,7 @@ with tabs[1]:
                     alt.Tooltip("tx_count:Q", title="Transactions", format=","),
                 ],
             )
-            .properties(height=310, title="Approval Rate by 3DS Status × Tokenization Indicator")
+            .properties(height=300)
         )
         st.altair_chart(sec_chart, use_container_width=True)
 
