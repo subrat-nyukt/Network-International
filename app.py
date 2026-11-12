@@ -1180,6 +1180,7 @@ with tabs[4]:
         c3_1, c3_2 = st.columns(2)
 
         with c3_1:
+            st.markdown("##### 🔐 3DS Success Rate by Challenge Mandate")
             mand_df = (
                 df_3ds.groupby("challenge_mandate", observed=True)
                 .agg(
@@ -1191,26 +1192,30 @@ with tabs[4]:
                 .reset_index()
                 .sort_values("success_rate", ascending=False)
             )
-            m3_chart = (
-                alt.Chart(mand_df)
-                .mark_bar(cornerRadiusTopRight=5, cornerRadiusBottomRight=5)
-                .encode(
-                    y=alt.Y("challenge_mandate:N", sort="-x", title="3DS Challenge Mandate"),
-                    x=alt.X("success_rate:Q", title="Authentication Success Rate (%)", scale=alt.Scale(domain=[0, 100])),
-                    color=alt.Color("success_rate:Q", scale=alt.Scale(scheme="tealblues"), title="Pass %"),
-                    tooltip=[
-                        alt.Tooltip("challenge_mandate:N", title="Mandate Type"),
-                        alt.Tooltip("attempts:Q", title="3DS Attempts", format=","),
-                        alt.Tooltip("success_rate:Q", title="Success Rate (%)", format=".2f"),
-                        alt.Tooltip("failure_rate:Q", title="Failure Rate (%)", format=".2f"),
-                        alt.Tooltip("avg_latency_ms:Q", title="Avg Latency (ms)", format=","),
-                    ],
-                )
-                .properties(height=300, title="3DS Success Rate by Challenge Mandate")
+            mand_df["label"] = mand_df["success_rate"].map(lambda x: f"{x:.1f}%")
+
+            m3_base = alt.Chart(mand_df).encode(
+                y=alt.Y("challenge_mandate:N", sort="-x", title="3DS Challenge Mandate", axis=alt.Axis(labelLimit=0)),
+                x=alt.X("success_rate:Q", title="Authentication Success Rate (%)", scale=alt.Scale(domain=[0, 100])),
             )
+            m3_bars = m3_base.mark_bar(cornerRadiusTopRight=5, cornerRadiusBottomRight=5).encode(
+                color=alt.Color("success_rate:Q", scale=alt.Scale(scheme="tealblues"), title="Pass %"),
+                tooltip=[
+                    alt.Tooltip("challenge_mandate:N", title="Mandate Type"),
+                    alt.Tooltip("attempts:Q", title="3DS Attempts", format=","),
+                    alt.Tooltip("success_rate:Q", title="Success Rate (%)", format=".2f"),
+                    alt.Tooltip("failure_rate:Q", title="Failure Rate (%)", format=".2f"),
+                    alt.Tooltip("avg_latency_ms:Q", title="Avg Latency (ms)", format=","),
+                ],
+            )
+            m3_text = m3_base.mark_text(dx=-25, color="#ffffff", fontWeight="bold", fontSize=11).encode(
+                text=alt.Text("label:N"),
+            )
+            m3_chart = (m3_bars + m3_text).properties(height=300)
             st.altair_chart(m3_chart, use_container_width=True)
 
         with c3_2:
+            st.markdown("##### ⚠️ 3DS Authentication Failure Reasons Breakdown")
             fail_3ds_df = df_3ds[df_3ds["is_auth_success"] == 0]
             if len(fail_3ds_df) > 0:
                 f_reason_df = (
@@ -1223,22 +1228,26 @@ with tabs[4]:
                     .sort_values("fail_count", ascending=False)
                 )
                 f_reason_df["share_pct"] = (f_reason_df["fail_count"] / len(fail_3ds_df) * 100).round(2)
+                f_reason_df["label"] = f_reason_df.apply(lambda r: f"{r.fail_count:,} ({r.share_pct:.1f}%)", axis=1)
 
-                f3_chart = (
-                    alt.Chart(f_reason_df)
-                    .mark_bar(cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#e11d48")
-                    .encode(
-                        y=alt.Y("failure_reason:N", sort="-x", title="3DS Failure Reason"),
-                        x=alt.X("fail_count:Q", title="Failed Authentication Count"),
-                        tooltip=[
-                            alt.Tooltip("failure_reason:N", title="Failure Reason"),
-                            alt.Tooltip("fail_count:Q", title="Failed Attempts", format=","),
-                            alt.Tooltip("share_pct:Q", title="Share of Failures (%)", format=".2f"),
-                            alt.Tooltip("lost_usd:Q", title="Abandoned Cart Value ($)", format="$,.0f"),
-                        ],
-                    )
-                    .properties(height=300, title="3DS Authentication Failure Reasons Breakdown")
+                max_f_x = float(f_reason_df["fail_count"].max()) * 1.30 if len(f_reason_df) > 0 else 1000
+
+                f3_base = alt.Chart(f_reason_df).encode(
+                    y=alt.Y("failure_reason:N", sort="-x", title="3DS Failure Reason", axis=alt.Axis(labelLimit=0)),
+                    x=alt.X("fail_count:Q", title="Failed Authentication Count", scale=alt.Scale(domain=[0, max_f_x])),
                 )
+                f3_bars = f3_base.mark_bar(cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#e11d48").encode(
+                    tooltip=[
+                        alt.Tooltip("failure_reason:N", title="Failure Reason"),
+                        alt.Tooltip("fail_count:Q", title="Failed Attempts", format=","),
+                        alt.Tooltip("share_pct:Q", title="Share of Failures (%)", format=".2f"),
+                        alt.Tooltip("lost_usd:Q", title="Abandoned Cart Value ($)", format="$,.0f"),
+                    ],
+                )
+                f3_text = f3_base.mark_text(dx=5, align="left", fontWeight="bold", fontSize=11).encode(
+                    text=alt.Text("label:N"),
+                )
+                f3_chart = (f3_bars + f3_text).properties(height=300)
                 st.altair_chart(f3_chart, use_container_width=True)
 
         # Acquirer 3DS Success Rate & Latency comparison
