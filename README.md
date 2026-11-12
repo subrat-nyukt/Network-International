@@ -40,20 +40,7 @@ python -m src.ml_pipeline
 python -m src.generate_fallback_visuals
 ```
 
----
 
-## ☁️ Free Cloud Hosting on Streamlit Community Cloud (From Your GitHub)
-
-1. Push this repository to your **GitHub** account (notice `.gitignore` automatically blocks `.env` so no secrets ever enter Git).
-2. Go to **[share.streamlit.io](https://share.streamlit.io)** and sign in with GitHub.
-3. Click **"Create app"** $\rightarrow$ select your repository, branch (`main`), and main file path: **`app.py`**.
-4. *(Optional)* Click **Advanced settings $\rightarrow$ Secrets** and paste your API key:
-   ```toml
-   OPENAI_API_KEY = "sk-..."
-   ```
-5. Click **Deploy!** Within 2 minutes you will have a public live URL (e.g., `https://your-app-name.streamlit.app`) hosting the dashboard, the ML models, the What-If Threshold Simulator, and the AI Insights Engine.
-
----
 
 ## 📂 Repository Structure
 
