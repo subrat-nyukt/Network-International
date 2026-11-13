@@ -483,7 +483,7 @@ with k6:
         f"""<div class="kpi-card" style="border-left-color: #0284c7;">
             <div class="kpi-title">3DS Auth Pass Rate</div>
             <div class="kpi-val">{auth_3ds_pass:.2f}%</div>
-            <div class="kpi-sub">{len(df_3ds):,} 3DS Attempts</div>
+            <div class="kpi-sub"></div>
         </div>""",
         unsafe_allow_html=True,
     )
