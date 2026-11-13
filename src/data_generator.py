@@ -1,9 +1,6 @@
 """
 Synthetic Data Generator for Issuer Authorization & 3DS Authentication Analytics.
 
-Generates two linked, realistic payment datasets:
-1. Issuer Authorization Transactions (220,000 rows across 4 months: Jul–Oct 2026)
-2. 3DS Authentication Logs (134,191 rows across 4 months: Jul–Oct 2026, mapping 1-to-1 to all CNP transactions)
 
 Built-in Domain Patterns & Documented Assumptions:
 - Channel & Security: POS Contactless / Chip & PIN have ~95-97% approval and ~0.15% fraud;
